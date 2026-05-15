@@ -9,7 +9,10 @@ export default {
         "bg-elev": "#FFFFFF",
         ink: "#0B121C",
         "ink-2": "#3E4A5C",
-        "ink-3": "#6E7889",
+        // ink-3 was #6E7889 in the design handoff (3.9:1 vs bg) which falls
+        // short of WCAG AA 4.5:1 for body/caption text. Darkened to #5A6373
+        // for the MVP (4.8:1).
+        "ink-3": "#5A6373",
         "ink-4": "#AEB6C2",
         line: "#E3E7EC",
         "line-2": "#CFD5DC",

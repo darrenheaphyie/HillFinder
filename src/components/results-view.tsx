@@ -178,7 +178,7 @@ export function ResultsView({ onSelectHill }: ResultsViewProps) {
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-auto">
+        <div className="flex-1 min-h-0 overflow-auto pb-20">
           {mobileView === "list" ? listContent : <div className="h-full">{mapContent}</div>}
         </div>
 

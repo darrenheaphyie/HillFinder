@@ -107,6 +107,20 @@ Dark mode is deferred to post-MVP — tracked in issue #37. Until then, write li
 
 The MVP dataset is 15 hills, so the list is rendered as plain elements with no virtualisation or pagination. If the dataset grows past ~50, revisit — `react-window` is the preferred option (small footprint, well-understood). Don't add virtualisation pre-emptively.
 
+## Directions hand-off
+
+The "Get directions" button uses the Google Maps universal URL:
+
+```
+https://www.google.com/maps/dir/?api=1&destination={lat},{lon}
+```
+
+This URL opens the Google Maps app on both Android and iOS when installed, and falls back to maps.google.com in the browser otherwise. We deliberately do NOT branch on platform — a single URL keeps the code simple and works for the majority case. If a future user-research signal says iOS users want Apple Maps preference, switch to `maps://?daddr={lat},{lon}` behind a UA check.
+
+## Contrast
+
+`ink-3` is `#5A6373` (not the design handoff's `#6E7889`) so caption-size text passes WCAG AA 4.5:1 against `bg`. Don't change this back without testing contrast.
+
 ## Overlapping map pins
 
 Pins whose start coordinates are within ~200m of each other are visually offset (jittered around their cluster centroid) — see `jitterOverlappingPins` in `src/components/hill-map.tsx`. We picked Option A from issue #13 (jitter) over clustering or zoom-on-click because it requires no MapLibre plugin and stays readable at all zoom levels. If a future dataset has 5+ pins overlapping the same point, this will start to feel cramped — at that point, swap to MapLibre's built-in clustering on the geojson source.

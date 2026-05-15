@@ -71,7 +71,7 @@ export function ElevationProfile({ hill, onHoverDistance }: ElevationProfileProp
               type="number"
               domain={[0, "dataMax"]}
               tickFormatter={(v: number) => `${v.toFixed(1)}`}
-              stroke="#6E7889"
+              stroke="#5A6373"
               fontSize={11}
               tickLine={false}
               label={{
@@ -79,12 +79,12 @@ export function ElevationProfile({ hill, onHoverDistance }: ElevationProfileProp
                 position: "insideBottomRight",
                 offset: -2,
                 fontSize: 11,
-                fill: "#6E7889",
+                fill: "#5A6373",
               }}
             />
             <YAxis
               dataKey="elevationM"
-              stroke="#6E7889"
+              stroke="#5A6373"
               fontSize={11}
               tickLine={false}
               width={40}
@@ -94,7 +94,7 @@ export function ElevationProfile({ hill, onHoverDistance }: ElevationProfileProp
                 position: "insideLeft",
                 offset: 12,
                 fontSize: 11,
-                fill: "#6E7889",
+                fill: "#5A6373",
               }}
               domain={["dataMin - 5", "dataMax + 5"]}
             />
