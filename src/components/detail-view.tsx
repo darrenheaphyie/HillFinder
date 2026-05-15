@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { getHillById } from "../lib/hills";
-import { getTown, DEFAULT_TOWN_ID } from "../lib/towns";
-import { useHashParam } from "../lib/hash-route";
 import type { Hill } from "../lib/types";
 import { ElevationProfile } from "./elevation-profile";
-import { HillMap } from "./hill-map";
+import { DetailMap } from "./detail-map";
 import { gradientColor } from "../lib/geo";
 
 type DetailViewProps = {
@@ -15,8 +13,7 @@ type DetailViewProps = {
 export function DetailView({ hillId, onBack }: DetailViewProps) {
   const [hill, setHill] = useState<Hill | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
-  const [townParam] = useHashParam("town");
-  const town = getTown(townParam ?? DEFAULT_TOWN_ID);
+  const [highlightDistanceM, setHighlightDistanceM] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,13 +82,9 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="h-72 rounded-lg overflow-hidden border border-line bg-bg-elev">
-            <HillMap
-              hills={[hill]}
-              focusHillId={hill.id}
-              fallbackCenter={{ lat: town.lat, lon: town.lon }}
-            />
+            <DetailMap hill={hill} highlightDistanceM={highlightDistanceM} />
           </div>
-          <ElevationProfile hill={hill} />
+          <ElevationProfile hill={hill} onHoverDistance={setHighlightDistanceM} />
         </div>
 
         <dl className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
