@@ -106,3 +106,7 @@ Dark mode is deferred to post-MVP — tracked in issue #37. Until then, write li
 ## Result list performance
 
 The MVP dataset is 15 hills, so the list is rendered as plain elements with no virtualisation or pagination. If the dataset grows past ~50, revisit — `react-window` is the preferred option (small footprint, well-understood). Don't add virtualisation pre-emptively.
+
+## Overlapping map pins
+
+Pins whose start coordinates are within ~200m of each other are visually offset (jittered around their cluster centroid) — see `jitterOverlappingPins` in `src/components/hill-map.tsx`. We picked Option A from issue #13 (jitter) over clustering or zoom-on-click because it requires no MapLibre plugin and stays readable at all zoom levels. If a future dataset has 5+ pins overlapping the same point, this will start to feel cramped — at that point, swap to MapLibre's built-in clustering on the geojson source.

@@ -1,8 +1,47 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import maplibregl, { type Map as MaplibreMap, type LngLatBoundsLike } from "maplibre-gl";
 import type { Hill } from "../lib/types";
-import { gradientColor } from "../lib/geo";
+import { gradientColor, haversineKm } from "../lib/geo";
 import { useHover } from "../lib/hover-context";
+
+const OVERLAP_THRESHOLD_KM = 0.2; // ~200m — pins closer than this get visually offset.
+const JITTER_RADIUS_DEG = 0.0008; // ~80m at Kilkenny's latitude.
+
+/**
+ * Detect groups of hills with pin starts close enough to visually overlap,
+ * and assign each a small fixed offset around the cluster centroid.
+ */
+function jitterOverlappingPins(hills: Hill[]): Map<string, { lat: number; lon: number }> {
+  const offsets = new Map<string, { lat: number; lon: number }>();
+  const groups: Hill[][] = [];
+
+  for (const h of hills) {
+    const group = groups.find((g) =>
+      g.some((member) => haversineKm(member.start, h.start) <= OVERLAP_THRESHOLD_KM),
+    );
+    if (group) group.push(h);
+    else groups.push([h]);
+  }
+
+  for (const group of groups) {
+    if (group.length === 1) {
+      offsets.set(group[0].id, group[0].start);
+      continue;
+    }
+    // Arrange around a small circle centred on the cluster's mean position.
+    const meanLat = group.reduce((s, h) => s + h.start.lat, 0) / group.length;
+    const meanLon = group.reduce((s, h) => s + h.start.lon, 0) / group.length;
+    group.forEach((h, i) => {
+      const angle = (i / group.length) * 2 * Math.PI;
+      offsets.set(h.id, {
+        lat: meanLat + Math.sin(angle) * JITTER_RADIUS_DEG,
+        lon: meanLon + Math.cos(angle) * JITTER_RADIUS_DEG,
+      });
+    });
+  }
+
+  return offsets;
+}
 
 type HillMapProps = {
   hills: Hill[];
@@ -28,6 +67,7 @@ export function HillMap({
   const mapRef = useRef<MaplibreMap | null>(null);
   const markersRef = useRef<Map<string, { marker: maplibregl.Marker; element: HTMLButtonElement }>>(new Map());
   const hover = useHover();
+  const pinOffsets = useMemo(() => jitterOverlappingPins(hills), [hills]);
 
   // Init map once.
   useEffect(() => {
@@ -102,8 +142,9 @@ export function HillMap({
           el.addEventListener("mouseenter", () => hover.setHoveredId(h.id));
           el.addEventListener("mouseleave", () => hover.setHoveredId(null));
         }
+        const pos = pinOffsets.get(h.id) ?? h.start;
         const marker = new maplibregl.Marker({ element: el })
-          .setLngLat([h.start.lon, h.start.lat])
+          .setLngLat([pos.lon, pos.lat])
           .addTo(map);
         markersRef.current.set(h.id, { marker, element: el });
       }
@@ -134,7 +175,7 @@ export function HillMap({
     } else {
       map.once("load", render);
     }
-  }, [hills, focusHillId, onPinClick, enableHoverSync, hover.setHoveredId]);
+  }, [hills, focusHillId, onPinClick, enableHoverSync, hover.setHoveredId, pinOffsets]);
 
   // Apply hover styling whenever hoveredId changes.
   useEffect(() => {
