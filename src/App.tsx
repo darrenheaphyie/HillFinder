@@ -1,10 +1,25 @@
 import { useHashRoute } from "./lib/hash-route";
 import { ResultsView } from "./components/results-view";
 import { DetailView } from "./components/detail-view";
+import { HoverProvider } from "./lib/hover-context";
 
 export function App() {
   const [route, navigate] = useHashRoute();
 
+  return (
+    <HoverProvider>
+      <AppShell route={route} navigate={navigate} />
+    </HoverProvider>
+  );
+}
+
+function AppShell({
+  route,
+  navigate,
+}: {
+  route: ReturnType<typeof useHashRoute>[0];
+  navigate: ReturnType<typeof useHashRoute>[1];
+}) {
   return (
     <div className="h-full flex flex-col bg-bg">
       <header className="border-b border-line bg-bg-elev px-4 py-2 flex items-center justify-between">

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import maplibregl, { type Map as MaplibreMap, type LngLatBoundsLike } from "maplibre-gl";
 import type { Hill } from "../lib/types";
 import { gradientColor } from "../lib/geo";
+import { useHover } from "../lib/hover-context";
 
 type HillMapProps = {
   hills: Hill[];
@@ -10,13 +11,23 @@ type HillMapProps = {
   /** Center of the map when no hills are visible. */
   fallbackCenter: { lat: number; lon: number };
   onPinClick?: (hillId: string) => void;
+  /** When true, the map participates in list-map hover sync. */
+  enableHoverSync?: boolean;
 };
 
 const OPENFREEMAP_STYLE = "https://tiles.openfreemap.org/styles/positron";
 
-export function HillMap({ hills, focusHillId, fallbackCenter, onPinClick }: HillMapProps) {
+export function HillMap({
+  hills,
+  focusHillId,
+  fallbackCenter,
+  onPinClick,
+  enableHoverSync = false,
+}: HillMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MaplibreMap | null>(null);
+  const markersRef = useRef<Map<string, { marker: maplibregl.Marker; element: HTMLButtonElement }>>(new Map());
+  const hover = useHover();
 
   // Init map once.
   useEffect(() => {
@@ -33,6 +44,7 @@ export function HillMap({ hills, focusHillId, fallbackCenter, onPinClick }: Hill
     return () => {
       map.remove();
       mapRef.current = null;
+      markersRef.current.clear();
     };
   }, [fallbackCenter.lat, fallbackCenter.lon]);
 
@@ -48,10 +60,9 @@ export function HillMap({ hills, focusHillId, fallbackCenter, onPinClick }: Hill
         if (map.getLayer(lineId)) map.removeLayer(lineId);
         if (map.getSource(lineId)) map.removeSource(lineId);
       });
-      const existingMarkers = (map as unknown as { _hillMarkers?: maplibregl.Marker[] })._hillMarkers ?? [];
-      existingMarkers.forEach((m) => m.remove());
+      markersRef.current.forEach(({ marker }) => marker.remove());
+      markersRef.current.clear();
 
-      const markers: maplibregl.Marker[] = [];
       for (const h of hills) {
         const lineId = `hill-line-${h.id}`;
         map.addSource(lineId, {
@@ -78,17 +89,24 @@ export function HillMap({ hills, focusHillId, fallbackCenter, onPinClick }: Hill
 
         const el = document.createElement("button");
         el.type = "button";
+        el.dataset.hillId = h.id;
         el.className =
-          "w-3 h-3 rounded-full ring-2 ring-bg-elev shadow-md cursor-pointer";
+          "w-3 h-3 rounded-full ring-2 ring-bg-elev shadow-md cursor-pointer transition-transform";
         el.style.background = gradientColor(h.avgGradient);
         el.setAttribute("aria-label", h.name ?? `Unnamed climb near ${h.nearestTown}`);
-        el.addEventListener("click", () => onPinClick?.(h.id));
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          onPinClick?.(h.id);
+        });
+        if (enableHoverSync) {
+          el.addEventListener("mouseenter", () => hover.setHoveredId(h.id));
+          el.addEventListener("mouseleave", () => hover.setHoveredId(null));
+        }
         const marker = new maplibregl.Marker({ element: el })
           .setLngLat([h.start.lon, h.start.lat])
           .addTo(map);
-        markers.push(marker);
+        markersRef.current.set(h.id, { marker, element: el });
       }
-      (map as unknown as { _hillMarkers?: maplibregl.Marker[] })._hillMarkers = markers;
 
       // Fit bounds.
       const focus = focusHillId ? hills.find((h) => h.id === focusHillId) : undefined;
@@ -116,7 +134,33 @@ export function HillMap({ hills, focusHillId, fallbackCenter, onPinClick }: Hill
     } else {
       map.once("load", render);
     }
-  }, [hills, focusHillId, onPinClick]);
+  }, [hills, focusHillId, onPinClick, enableHoverSync, hover.setHoveredId]);
+
+  // Apply hover styling whenever hoveredId changes.
+  useEffect(() => {
+    if (!enableHoverSync) return;
+    const map = mapRef.current;
+    if (!map) return;
+
+    markersRef.current.forEach(({ element }, id) => {
+      const active = id === hover.hoveredId;
+      element.style.transform = active ? "scale(1.5)" : "";
+      element.style.outline = active ? "2px solid #B85C38" : "";
+      element.style.outlineOffset = active ? "1px" : "";
+    });
+
+    const apply = () => {
+      hills.forEach((h) => {
+        const lineId = `hill-line-${h.id}`;
+        if (!map.getLayer(lineId)) return;
+        const active = h.id === hover.hoveredId;
+        map.setPaintProperty(lineId, "line-width", active ? 7 : 4);
+        map.setPaintProperty(lineId, "line-opacity", hover.hoveredId == null || active ? 0.95 : 0.35);
+      });
+    };
+    if (map.isStyleLoaded()) apply();
+    else map.once("idle", apply);
+  }, [hover.hoveredId, hills, enableHoverSync]);
 
   return <div ref={containerRef} className="w-full h-full" role="application" aria-label="Map of hills" />;
 }

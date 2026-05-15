@@ -77,6 +77,7 @@ export function ResultsView({ onSelectHill }: ResultsViewProps) {
           hills={visibleHills}
           fallbackCenter={referencePoint}
           onPinClick={onSelectHill}
+          enableHoverSync
         />
       </section>
     </div>
