@@ -13,6 +13,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Build artefacts
+tsconfig.tsbuildinfo
+
 # Editor
 .vscode/*
 !.vscode/extensions.json

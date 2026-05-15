@@ -1,0 +1,9 @@
+[
+  { "id": "kilkenny", "name": "Kilkenny city", "lat": 52.6541, "lon": -7.2448 },
+  { "id": "thomastown", "name": "Thomastown", "lat": 52.5263, "lon": -7.1372 },
+  { "id": "callan", "name": "Callan", "lat": 52.5454, "lon": -7.3886 },
+  { "id": "castlecomer", "name": "Castlecomer", "lat": 52.8044, "lon": -7.2061 },
+  { "id": "graiguenamanagh", "name": "Graiguenamanagh", "lat": 52.5394, "lon": -6.9528 },
+  { "id": "inistioge", "name": "Inistioge", "lat": 52.4944, "lon": -7.0631 },
+  { "id": "bennettsbridge", "name": "Bennettsbridge", "lat": 52.5851, "lon": -7.1894 }
+]

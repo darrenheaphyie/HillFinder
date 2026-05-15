@@ -54,7 +54,17 @@ The hard problem is the detector itself: defining what counts as "a hill" in a w
 
 ## Running locally
 
-*(To be filled in once the frontend is scaffolded.)*
+Requires Node 18+ and npm.
+
+```sh
+npm install
+npm run dev       # start the Vite dev server on http://localhost:5173
+npm run build     # produce a production build under dist/
+npm run preview   # serve the production build locally
+npm run typecheck # run TypeScript in --noEmit mode
+```
+
+No environment variables or API keys are required — the map uses [OpenFreeMap](https://openfreemap.org) tiles.
 
 ## Why "HillFinder"?
 

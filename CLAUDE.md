@@ -88,3 +88,11 @@ Test mobile layouts seriously. Imagine a runner standing at a road junction in t
 ## Update this file
 
 When meaningful decisions get made — a new convention, a stack change, a phase shift — update this file in the same commit. It's a living document, not a setup-time artefact.
+
+## Scaffold notes
+
+The Vite + React + TS + Tailwind scaffold lives at the repo root. The original Claude Design handoff (static HTML + raw `.jsx` prototype) sits untouched in `design_handoff_hillfinder/` and acts as the visual reference, not as runtime code. Don't import from there — port what you need into `src/`.
+
+The map component (`src/components/hill-map.tsx`) uses MapLibre GL with OpenFreeMap (positron) tiles. The design prototype's stylised SVG topomap is not used — it was a presentational mock.
+
+Run commands are in the README. `npm run build` runs `tsc -b` first, so type errors block the build.
