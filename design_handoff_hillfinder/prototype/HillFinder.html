@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HillFinder — Kilkenny</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F7F9;
+    --bg-elev: #FFFFFF;
+    --ink: #0B121C;
+    --ink-2: #3E4A5C;
+    --ink-3: #6E7889;
+    --ink-4: #AEB6C2;
+    --line: #E3E7EC;
+    --line-2: #CFD5DC;
+    --paper: #EDF0F3;
+    --accent: #B85C38;
+    --accent-2: #93481c;
+    --water: #B7CCD4;
+    --contour: #C7CED6;
+    --road: #FFFFFF;
+    --green: #4A9D5F;
+    --lime:  #A8C242;
+    --yellow:#E8B53C;
+    --orange:#E8843B;
+    --red:   #C73E3E;
+  }
+  html.dark {
+    --bg: #0C0F14;
+    --bg-elev: #14181F;
+    --ink: #F1F4F8;
+    --ink-2: #B3BDC9;
+    --ink-3: #7A8492;
+    --ink-4: #495260;
+    --line: #1F242C;
+    --line-2: #2A2F38;
+    --paper: #11151B;
+    --accent: #D97B53;
+    --accent-2: #f29a73;
+    --water: #25404A;
+    --contour: #1E232A;
+    --road: #2A2F38;
+  }
+
+  /* Bone palette: crisp white + true black + cobalt */
+  html.pal-bone {
+    --bg: #FFFFFF;
+    --bg-elev: #FAFBFC;
+    --ink: #000000;
+    --ink-2: #2E3338;
+    --ink-3: #6A7178;
+    --ink-4: #B3B8BE;
+    --line: #ECEEF1;
+    --line-2: #D4D8DD;
+    --paper: #F4F5F7;
+    --accent: #1B3FB5;
+    --accent-2: #0d2a8a;
+    --water: #B7C8D8;
+    --contour: #CBD0D6;
+  }
+  /* Graphite palette: mid-cool grey + vermillion */
+  html.pal-graphite {
+    --bg: #DDE1E5;
+    --bg-elev: #E8EBEF;
+    --ink: #11161C;
+    --ink-2: #3A434E;
+    --ink-3: #61697A;
+    --ink-4: #98A0AC;
+    --line: #C7CDD3;
+    --line-2: #B0B6BE;
+    --paper: #D3D7DC;
+    --accent: #D8462A;
+    --accent-2: #ad351f;
+    --water: #A6B9C5;
+    --contour: #B6BCC4;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-ui, 'Geist'), system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  body.lock-scroll { overflow: hidden; }
+
+  /* ============ Sun-setting dark/light transition ============ */
+  /* The sun disc + sky tint are animated from JS via the Web Animations API
+     to avoid any CSS-cascade interference. CSS here only sets the static
+     baseline styles and visibility.                                         */
+
+  .sun-sweep {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    overflow: hidden;
+  }
+  .sun-sweep.active { opacity: 1; }
+
+  /* Sky-tint: huge element with a radial gradient at its centre. JS
+     translates it so its centre coincides with the sun's position.         */
+  .sun-sky {
+    position: absolute;
+    top: 0; left: 0;
+    width: 200vw; height: 200vh;
+    margin-left: -100vw; margin-top: -100vh;
+    background: radial-gradient(ellipse 36vw 50vh at 50% 50%,
+      rgba(255, 234, 168, 0.85)  0%,
+      rgba(255, 180,  92, 0.78) 14%,
+      rgba(232, 100,  68, 0.66) 30%,
+      rgba(166,  58,  92, 0.58) 48%,
+      rgba( 70,  42,  98, 0.55) 66%,
+      rgba( 26,  28,  62, 0.66) 82%,
+      rgba( 12,  14,  30, 0.78) 100%);
+    transform: translate(95vw, 12vh);
+    will-change: transform;
+  }
+  .sun-disc {
+    position: absolute;
+    top: 0; left: 0;
+    width: 92px; height: 92px;
+    margin-left: -46px; margin-top: -46px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      #FFF9DC  0%,
+      #FFE49A 20%,
+      #FFB46A 42%,
+      #FF7E48 66%,
+      rgba(255, 110, 80, 0) 100%);
+    filter:
+      drop-shadow(0 0 24px rgba(255, 188, 96, 0.8))
+      drop-shadow(0 0 68px rgba(255, 140, 60, 0.5));
+    transform: translate(95vw, 12vh);
+    will-change: transform;
+  }
+  .sun-sweep::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 36vh;
+    background: linear-gradient(to top,
+      rgba(12, 14, 30, 0.55) 0%,
+      rgba(12, 14, 30, 0)  100%);
+    pointer-events: none;
+  }
+
+  /* Narrow universal palette-transition rule scoped via :where() so it
+     applies to the underlying UI but never to the sweep elements.          */
+  html.transitioning :where(body, header, aside, main, section, footer,
+    h1, h2, h3, h4, p, span, a, button, input, label, li, ul, ol, div,
+    svg, path, rect, circle, line, text, polygon, polyline, ellipse, g) {
+    transition:
+      background-color 1.1s cubic-bezier(.4,0,.4,1),
+      color 1.1s cubic-bezier(.4,0,.4,1),
+      border-color 1.1s cubic-bezier(.4,0,.4,1),
+      fill 1.1s cubic-bezier(.4,0,.4,1),
+      stroke 1.1s cubic-bezier(.4,0,.4,1) !important;
+  }
+  html.transitioning .sun-sweep,
+  html.transitioning .sun-sky,
+  html.transitioning .sun-disc { transition: none !important; }
+  .mono { font-family: var(--font-mono, 'Geist Mono'), ui-monospace, SFMono-Regular, monospace; font-feature-settings: "tnum"; }
+  .display { font-family: var(--font-display, var(--font-ui, 'Geist')), sans-serif; }
+
+  /* ============ THEME: Wayfinder (botanical / editorial) ============ */
+  html.theme-wayfinder {
+    --bg: #EFE9D8;
+    --bg-elev: #F6F1E1;
+    --ink: #1B2718;
+    --ink-2: #44523F;
+    --ink-3: #7a826f;
+    --ink-4: #b6b29b;
+    --line: #DDD6BC;
+    --line-2: #C5BC9C;
+    --paper: #E3DCC2;
+    --accent: #3E6B47;
+    --accent-2: #2a4d31;
+    --water: #8FB8AE;
+    --contour: #C7BFA0;
+    --road: #F6F1E1;
+    --font-ui: 'Manrope';
+    --font-display: 'Instrument Serif';
+    --font-mono: 'JetBrains Mono';
+  }
+  html.theme-wayfinder.dark {
+    --bg: #14180F;
+    --bg-elev: #1B201B;
+    --ink: #ECE6D2;
+    --ink-2: #B8B1A2;
+    --ink-3: #807a6e;
+    --ink-4: #565143;
+    --line: #2A2F25;
+    --line-2: #353A2F;
+    --paper: #1F2620;
+    --accent: #7BB286;
+    --accent-2: #a4d1ad;
+    --water: #3a5a52;
+    --contour: #28302a;
+  }
+  html.theme-wayfinder h1,
+  html.theme-wayfinder h2,
+  html.theme-wayfinder .display-serif {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+  }
+  html.theme-wayfinder h1 { font-size: 38px !important; line-height: 1.08 !important; }
+  html.theme-wayfinder h2 { font-size: 22px !important; font-style: italic; }
+
+  /* ============ THEME: Race Engineering (HUD / dark) ============ */
+  html.theme-race {
+    --bg: #0A0B0A;
+    --bg-elev: #13151A;
+    --ink: #E7EBE0;
+    --ink-2: #9DA39A;
+    --ink-3: #5F6760;
+    --ink-4: #3A413A;
+    --line: #1F2326;
+    --line-2: #2C3236;
+    --paper: #0F1212;
+    --accent: #C5FF3D;
+    --accent-2: #DBFF7A;
+    --water: #1F4A66;
+    --contour: #1B2024;
+    --road: #2A2F33;
+    --font-ui: 'Space Grotesk';
+    --font-mono: 'JetBrains Mono';
+    --green:  #6EE787;
+    --lime:   #C5FF3D;
+    --yellow: #FFD93D;
+    --orange: #FF8A3D;
+    --red:    #FF4D4D;
+  }
+  html.theme-race h1, html.theme-race h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.02em;
+  }
+  html.theme-race button,
+  html.theme-race .mono,
+  html.theme-race input {
+    font-family: 'JetBrains Mono', monospace;
+  }
+  html.theme-race input[type=range]::-webkit-slider-thumb { background: var(--accent); border-color: var(--bg); }
+  html.theme-race input[type=range]::-moz-range-thumb { background: var(--accent); border-color: var(--bg); }
+  html.theme-race .race-glow { filter: drop-shadow(0 0 4px var(--accent)); }
+
+  /* shared structural override hooks */
+  html.theme-race .corner-cut {
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
+  /* Wayfinder structural overrides */
+  html.theme-wayfinder header { background: var(--bg) !important; border-bottom: 1px solid var(--line) !important; }
+  html.theme-wayfinder .filter-strip { background: var(--bg) !important; }
+  html.theme-wayfinder .list-pane li { padding: 20px 22px !important; }
+  /* Race structural overrides */
+  html.theme-race header { background: var(--bg) !important; border-bottom: 1px solid var(--accent) !important; }
+  html.theme-race .filter-strip { background: var(--bg-elev) !important; }
+  html.theme-race .list-pane { background: var(--bg) !important; }
+  html.theme-race .list-pane li:hover { background: rgba(197, 255, 61, 0.04) !important; }
+  html.theme-race button { letter-spacing: 0.04em; }
+  html.theme-race h1 { text-transform: none; font-weight: 600 !important; }
+  html.theme-race ::selection { background: var(--accent); color: var(--bg); }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  #root { min-height: 100vh; width: 100vw; }
+
+  /* range slider */
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; background: transparent; height: 18px; margin: 0;
+  }
+  input[type=range]::-webkit-slider-runnable-track {
+    height: 2px; background: var(--line-2); border-radius: 2px;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--ink); margin-top: -6px;
+    border: 2px solid var(--bg-elev);
+    box-shadow: 0 1px 2px rgba(0,0,0,.15);
+  }
+  input[type=range]::-moz-range-track { height: 2px; background: var(--line-2); border-radius: 2px; }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--ink); border: 2px solid var(--bg-elev);
+  }
+
+  .scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scrollbar::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 4px; }
+  .scrollbar::-webkit-scrollbar-track { background: transparent; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+  .fadein { animation: fadeIn .25s ease-out both; }
+  @keyframes pulseRing {
+    0% { transform: scale(.6); opacity: .6; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "screen": "results",
+    "view": "list",
+    "theme": "paper",
+    "palette": "slate",
+    "dark": false,
+    "accent": "#B85C38"
+  }/*EDITMODE-END*/;
+</script>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="src/data.jsx"></script>
+<script type="text/babel" src="src/icons.jsx"></script>
+<script type="text/babel" src="src/themes.jsx"></script>
+<script type="text/babel" src="src/topomap.jsx"></script>
+<script type="text/babel" src="src/profile.jsx"></script>
+<script type="text/babel" src="src/filter-rail.jsx"></script>
+<script type="text/babel" src="src/mode-switcher.jsx"></script>
+<script type="text/babel" src="src/grid.jsx"></script>
+<script type="text/babel" src="src/compare.jsx"></script>
+<script type="text/babel" src="src/plan.jsx"></script>
+<script type="text/babel" src="src/mapfirst.jsx"></script>
+<script type="text/babel" src="src/results.jsx"></script>
+<script type="text/babel" src="src/detail.jsx"></script>
+<script type="text/babel" src="src/workout-card.jsx"></script>
+<script type="text/babel" src="src/app.jsx"></script>
+
+</body>
+</html>
