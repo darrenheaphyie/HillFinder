@@ -117,6 +117,18 @@ https://www.google.com/maps/dir/?api=1&destination={lat},{lon}
 
 This URL opens the Google Maps app on both Android and iOS when installed, and falls back to maps.google.com in the browser otherwise. We deliberately do NOT branch on platform — a single URL keeps the code simple and works for the majority case. If a future user-research signal says iOS users want Apple Maps preference, switch to `maps://?daddr={lat},{lon}` behind a UA check.
 
+## Component classes
+
+`src/styles.css` defines a small layer of reusable component classes — use them rather than re-stating utilities inline:
+
+- `hf-card` — bordered, rounded, padded container on `bg-bg-elev`
+- `hf-card-interactive` — adds hover affordance for clickable cards
+- `hf-btn-primary` — accent CTA with a 44px tap target
+- `hf-link` — accent text link
+- `hf-caption` — small uppercase tracked caption text
+
+If you find yourself writing the same 6-class chain twice, add it here.
+
 ## Contrast
 
 `ink-3` is `#5A6373` (not the design handoff's `#6E7889`) so caption-size text passes WCAG AA 4.5:1 against `bg`. Don't change this back without testing contrast.

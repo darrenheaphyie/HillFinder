@@ -73,7 +73,7 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
         <button
           type="button"
           onClick={fetchHill}
-          className="mt-3 text-sm bg-accent text-bg-elev px-3 py-1.5 rounded-md hover:bg-accent-2"
+          className="hf-btn-primary text-sm mt-3"
         >
           Retry
         </button>
@@ -159,7 +159,7 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
             href={directionsHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block bg-accent text-bg-elev px-4 py-2 rounded-md font-medium hover:bg-accent-2"
+            className="hf-btn-primary"
           >
             Get directions
           </a>

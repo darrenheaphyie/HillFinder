@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* HillFinder design tokens as reusable component classes. Reach for these
+   first; add a one-off only if a component genuinely needs to differ. */
+@layer components {
+  /* Card: the standard light, bordered, rounded container used for hill
+     summaries, stats, and Strava segments. */
+  .hf-card {
+    @apply bg-bg-elev border border-line rounded-lg p-3;
+  }
+  .hf-card-interactive {
+    @apply hf-card cursor-pointer hover:border-line-2 transition-colors;
+  }
+
+  /* Primary button: accent background, white text, 44px tap target. */
+  .hf-btn-primary {
+    @apply inline-flex items-center justify-center bg-accent text-bg-elev
+      rounded-md px-3 min-h-[44px] font-medium hover:bg-accent-2
+      disabled:bg-ink-4 disabled:text-bg-elev disabled:cursor-not-allowed;
+  }
+  /* Subtle text link in the accent colour. */
+  .hf-link {
+    @apply text-accent hover:text-accent-2;
+  }
+  /* Section caption — uppercase tracking applied at the typography layer. */
+  .hf-caption {
+    @apply text-xs uppercase tracking-wide text-ink-3;
+  }
+}
+
 html,
 body,
 #root {

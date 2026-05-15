@@ -212,7 +212,7 @@ export function ResultsView({ onSelectHill }: ResultsViewProps) {
             <button
               type="button"
               onClick={() => setFiltersOpen(false)}
-              className="w-full min-h-[44px] bg-accent text-bg-elev rounded-md font-medium hover:bg-accent-2"
+              className="hf-btn-primary w-full"
             >
               Show {visibleHills.length} {visibleHills.length === 1 ? "climb" : "climbs"}
             </button>
@@ -233,7 +233,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
       <button
         type="button"
         onClick={onRetry}
-        className="min-h-[44px] text-sm bg-accent text-bg-elev px-3 py-1.5 rounded-md hover:bg-accent-2"
+        className="hf-btn-primary text-sm"
       >
         Retry
       </button>
@@ -262,7 +262,7 @@ function EmptyState({
           <button
             type="button"
             onClick={onResetFilters}
-            className="min-h-[44px] text-sm bg-accent text-bg-elev px-3 py-1.5 rounded-md hover:bg-accent-2"
+            className="hf-btn-primary text-sm"
           >
             Reset filters
           </button>
