@@ -24,11 +24,21 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
       if (cancelled) return;
       setHill(h);
       setLoaded(true);
+      if (h?.name) document.title = `${h.name} · HillFinder`;
     });
     return () => {
       cancelled = true;
     };
   }, [hillId]);
+
+  // Escape closes the detail view.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onBack();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onBack]);
 
   if (!loaded) {
     return <div className="p-8 text-ink-3">Loading…</div>;
@@ -36,7 +46,7 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
 
   if (!hill) {
     return (
-      <div className="p-8">
+      <div className="p-8 max-w-xl">
         <button
           type="button"
           onClick={onBack}
@@ -44,7 +54,11 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
         >
           ← Back to results
         </button>
-        <p className="mt-4 text-ink">Hill not found.</p>
+        <h1 className="font-serif text-3xl text-ink mt-4">Hill not found</h1>
+        <p className="mt-2 text-ink-2">
+          We couldn't find a hill with id <code className="font-mono text-sm">{hillId}</code>.
+          It may have been removed or the link may be stale.
+        </p>
       </div>
     );
   }

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useHashRoute } from "./lib/hash-route";
 import { ResultsView } from "./components/results-view";
 import { DetailView } from "./components/detail-view";
@@ -5,6 +6,11 @@ import { HoverProvider } from "./lib/hover-context";
 
 export function App() {
   const [route, navigate] = useHashRoute();
+
+  useEffect(() => {
+    document.title =
+      route.kind === "detail" ? `HillFinder · climb` : `HillFinder · Kilkenny`;
+  }, [route]);
 
   return (
     <HoverProvider>
