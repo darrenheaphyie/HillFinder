@@ -60,17 +60,27 @@ export function ResultsView({ onSelectHill }: ResultsViewProps) {
           onReset={resetFilters}
           activeCount={activeCount}
         />
-        <ul className="flex-1 overflow-auto p-3 space-y-2">
-          {visibleHills.map((h) => (
-            <li key={h.id}>
-              <HillCard
-                hill={h}
-                referencePoint={referencePoint}
-                onSelect={onSelectHill}
-              />
-            </li>
-          ))}
-        </ul>
+        <div className="flex-1 overflow-auto">
+          {visibleHills.length === 0 ? (
+            <EmptyState
+              hasActiveFilters={activeCount > 0}
+              townName={town.name}
+              onResetFilters={resetFilters}
+            />
+          ) : (
+            <ul className="p-3 space-y-2">
+              {visibleHills.map((h) => (
+                <li key={h.id}>
+                  <HillCard
+                    hill={h}
+                    referencePoint={referencePoint}
+                    onSelect={onSelectHill}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </aside>
       <section className="min-h-0">
         <HillMap
@@ -80,6 +90,42 @@ export function ResultsView({ onSelectHill }: ResultsViewProps) {
           enableHoverSync
         />
       </section>
+    </div>
+  );
+}
+
+function EmptyState({
+  hasActiveFilters,
+  townName,
+  onResetFilters,
+}: {
+  hasActiveFilters: boolean;
+  townName: string;
+  onResetFilters: () => void;
+}) {
+  return (
+    <div className="p-6 flex flex-col items-start gap-3">
+      <h3 className="font-serif text-xl text-ink">No climbs match</h3>
+      {hasActiveFilters ? (
+        <>
+          <p className="text-sm text-ink-2">
+            Your filters are stricter than the available data. Try widening the
+            length, gradient, or distance range, or pick a different reference town.
+          </p>
+          <button
+            type="button"
+            onClick={onResetFilters}
+            className="text-sm bg-accent text-bg-elev px-3 py-1.5 rounded-md hover:bg-accent-2"
+          >
+            Reset filters
+          </button>
+        </>
+      ) : (
+        <p className="text-sm text-ink-2">
+          No climbs are loaded near {townName}. (This shouldn't happen with the
+          built-in dataset — check that <code className="font-mono">hills.json</code> loaded.)
+        </p>
+      )}
     </div>
   );
 }

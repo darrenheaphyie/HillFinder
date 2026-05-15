@@ -102,3 +102,7 @@ Run commands are in the README. `npm run build` runs `tsc -b` first, so type err
 ## Dark mode
 
 Dark mode is deferred to post-MVP — tracked in issue #37. Until then, write light-palette Tailwind classes only and do **not** add `dark:` variants. The prototype's dark palette and "sun-sweep" transition remain in `design_handoff_hillfinder/` as a reference.
+
+## Result list performance
+
+The MVP dataset is 15 hills, so the list is rendered as plain elements with no virtualisation or pagination. If the dataset grows past ~50, revisit — `react-window` is the preferred option (small footprint, well-understood). Don't add virtualisation pre-emptively.
