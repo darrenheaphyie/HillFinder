@@ -66,6 +66,17 @@ npm run typecheck # run TypeScript in --noEmit mode
 
 No environment variables or API keys are required — the map uses [OpenFreeMap](https://openfreemap.org) tiles.
 
+### Project structure
+
+```
+src/
+  components/   Tailwind-styled React components
+  data/         hills.json (mock data), towns.json (reference points)
+  lib/          types, data layer (getHills), geo helpers, hash routing
+design_handoff_hillfinder/
+                visual reference — do NOT import from here
+```
+
 ## Why "HillFinder"?
 
 Because it finds hills. Naming is hard; descriptive beats clever.
