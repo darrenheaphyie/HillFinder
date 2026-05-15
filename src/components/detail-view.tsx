@@ -3,7 +3,7 @@ import { getHillById } from "../lib/hills";
 import type { Hill } from "../lib/types";
 import { ElevationProfile } from "./elevation-profile";
 import { DetailMap } from "./detail-map";
-import { gradientColor } from "../lib/geo";
+import { gradientColor, formatSurface, formatHillName } from "../lib/geo";
 
 type DetailViewProps = {
   hillId: string;
@@ -100,7 +100,7 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
     );
   }
 
-  const displayName = hill.name ?? `Unnamed climb near ${hill.nearestTown}`;
+  const displayName = formatHillName(hill.name, hill.nearestTown);
   const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${hill.start.lat},${hill.start.lon}`;
 
   return (
@@ -142,7 +142,7 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
           />
           <DetailStat label="Start elevation" value={`${hill.startElevationM} m`} />
           <DetailStat label="Top elevation" value={`${hill.topElevationM} m`} />
-          <DetailStat label="Surface" value={hill.surface} />
+          <DetailStat label="Surface" value={formatSurface(hill.surface)} />
           <DetailStat label="Direction" value={hill.direction} />
         </dl>
 

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import maplibregl, { type Map as MaplibreMap, type LngLatBoundsLike } from "maplibre-gl";
 import type { Hill } from "../lib/types";
-import { gradientColor, haversineKm } from "../lib/geo";
+import { gradientColor, haversineKm, formatHillName } from "../lib/geo";
 import { useHover } from "../lib/hover-context";
 
 const OVERLAP_THRESHOLD_KM = 0.2; // ~200m — pins closer than this get visually offset.
@@ -133,7 +133,7 @@ export function HillMap({
         el.className =
           "w-3 h-3 rounded-full ring-2 ring-bg-elev shadow-md cursor-pointer transition-transform";
         el.style.background = gradientColor(h.avgGradient);
-        el.setAttribute("aria-label", h.name ?? `Unnamed climb near ${h.nearestTown}`);
+        el.setAttribute("aria-label", formatHillName(h.name, h.nearestTown));
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           onPinClick?.(h.id);

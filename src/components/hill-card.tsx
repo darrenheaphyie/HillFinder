@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Hill } from "../lib/types";
-import { haversineKm, gradientColor } from "../lib/geo";
+import { haversineKm, gradientColor, formatSurface, formatHillName } from "../lib/geo";
 import { useHover } from "../lib/hover-context";
 
 type HillCardProps = {
@@ -15,7 +15,7 @@ export function HillCard({ hill, referencePoint, onSelect }: HillCardProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const distanceKm = haversineKm(referencePoint, hill.start);
-  const displayName = hill.name ?? `Unnamed climb near ${hill.nearestTown}`;
+  const displayName = formatHillName(hill.name, hill.nearestTown);
 
   // When highlighted from the map, smooth-scroll into view if needed.
   useEffect(() => {
@@ -67,7 +67,7 @@ export function HillCard({ hill, referencePoint, onSelect }: HillCardProps) {
           color={gradientColor(hill.avgGradient)}
         />
         <Stat label="Ascent" value={`${hill.totalAscentM} m`} />
-        <Stat label="Surface" value={hill.surface} />
+        <Stat label="Surface" value={formatSurface(hill.surface)} />
       </div>
     </button>
   );

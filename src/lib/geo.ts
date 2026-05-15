@@ -22,3 +22,19 @@ export function gradientColor(gradient: number): string {
   if (gradient < 12) return "#E8843B"; // orange
   return "#C73E3E"; // red
 }
+
+/** Human-readable label for a surface value. Defensive against unexpected strings. */
+export function formatSurface(surface: string | null | undefined): string {
+  if (!surface) return "Unknown surface";
+  switch (surface) {
+    case "paved": return "Paved";
+    case "unpaved": return "Unpaved";
+    case "mixed": return "Mixed";
+    default: return "Unknown surface";
+  }
+}
+
+/** Renders a hill name with a fallback for unnamed climbs. */
+export function formatHillName(name: string | null, nearestTown: string): string {
+  return name ?? `Unnamed climb near ${nearestTown || "unknown"}`;
+}
