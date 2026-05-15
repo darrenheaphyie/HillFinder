@@ -1,38 +1,42 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getHills } from "../lib/hills";
 import { getTown, DEFAULT_TOWN_ID } from "../lib/towns";
 import { useHashParam } from "../lib/hash-route";
+import { useFilters } from "../lib/use-filters";
+import { activeFilterCount, applyFilters } from "../lib/filters";
 import type { Hill } from "../lib/types";
 import { HillCard } from "./hill-card";
 import { HillMap } from "./hill-map";
 import { TownSelector } from "./town-selector";
-import { haversineKm } from "../lib/geo";
+import { FilterRail } from "./filter-rail";
 
 type ResultsViewProps = {
   onSelectHill: (id: string) => void;
 };
 
 export function ResultsView({ onSelectHill }: ResultsViewProps) {
-  const [hills, setHills] = useState<Hill[]>([]);
+  const [allHills, setAllHills] = useState<Hill[]>([]);
   const [townParam, setTownParam] = useHashParam("town");
   const townId = townParam ?? DEFAULT_TOWN_ID;
   const town = getTown(townId);
+  const { filters, setFilters, resetFilters } = useFilters();
 
   useEffect(() => {
     let cancelled = false;
     getHills().then((h) => {
-      if (!cancelled) setHills(h);
+      if (!cancelled) setAllHills(h);
     });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const sortedHills = [...hills].sort(
-    (a, b) =>
-      haversineKm({ lat: town.lat, lon: town.lon }, a.start) -
-      haversineKm({ lat: town.lat, lon: town.lon }, b.start),
+  const referencePoint = { lat: town.lat, lon: town.lon };
+  const visibleHills = useMemo(
+    () => applyFilters(allHills, filters, referencePoint),
+    [allHills, filters, referencePoint.lat, referencePoint.lon],
   );
+  const activeCount = activeFilterCount(filters);
 
   return (
     <div className="h-full grid grid-cols-1 md:grid-cols-[420px_1fr]">
@@ -41,7 +45,8 @@ export function ResultsView({ onSelectHill }: ResultsViewProps) {
           <h2 className="font-serif text-2xl text-ink leading-none">Hills near {town.name}</h2>
           <div className="flex items-center justify-between mt-2 gap-3 flex-wrap">
             <p className="text-xs text-ink-3">
-              {sortedHills.length} {sortedHills.length === 1 ? "climb" : "climbs"}
+              {visibleHills.length} of {allHills.length}{" "}
+              {allHills.length === 1 ? "climb" : "climbs"}
             </p>
             <TownSelector
               value={townId}
@@ -49,12 +54,18 @@ export function ResultsView({ onSelectHill }: ResultsViewProps) {
             />
           </div>
         </header>
+        <FilterRail
+          filters={filters}
+          onChange={setFilters}
+          onReset={resetFilters}
+          activeCount={activeCount}
+        />
         <ul className="flex-1 overflow-auto p-3 space-y-2">
-          {sortedHills.map((h) => (
+          {visibleHills.map((h) => (
             <li key={h.id}>
               <HillCard
                 hill={h}
-                referencePoint={{ lat: town.lat, lon: town.lon }}
+                referencePoint={referencePoint}
                 onSelect={onSelectHill}
               />
             </li>
@@ -63,8 +74,8 @@ export function ResultsView({ onSelectHill }: ResultsViewProps) {
       </aside>
       <section className="min-h-0">
         <HillMap
-          hills={sortedHills}
-          fallbackCenter={{ lat: town.lat, lon: town.lon }}
+          hills={visibleHills}
+          fallbackCenter={referencePoint}
           onPinClick={onSelectHill}
         />
       </section>
