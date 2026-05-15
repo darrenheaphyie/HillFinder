@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getHillById } from "../lib/hills";
 import { getTown, DEFAULT_TOWN_ID } from "../lib/towns";
+import { useHashParam } from "../lib/hash-route";
 import type { Hill } from "../lib/types";
 import { ElevationProfile } from "./elevation-profile";
 import { HillMap } from "./hill-map";
@@ -14,7 +15,8 @@ type DetailViewProps = {
 export function DetailView({ hillId, onBack }: DetailViewProps) {
   const [hill, setHill] = useState<Hill | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
-  const town = getTown(DEFAULT_TOWN_ID);
+  const [townParam] = useHashParam("town");
+  const town = getTown(townParam ?? DEFAULT_TOWN_ID);
 
   useEffect(() => {
     let cancelled = false;
