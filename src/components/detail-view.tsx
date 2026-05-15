@@ -104,12 +104,13 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
   const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${hill.start.lat},${hill.start.lon}`;
 
   return (
-    <div className="h-full overflow-auto">
+    <div className="h-full overflow-auto pb-20 md:pb-0">
       <div className="max-w-5xl mx-auto p-4 md:p-6">
         <button
           type="button"
           onClick={onBack}
-          className="text-sm text-accent hover:text-accent-2 mb-3"
+          className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-sm text-accent hover:text-accent-2 mb-2"
+          aria-label="Back to results"
         >
           ← Back to results
         </button>
@@ -121,7 +122,7 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="h-72 rounded-lg overflow-hidden border border-line bg-bg-elev">
+          <div className="h-64 sm:h-72 rounded-lg overflow-hidden border border-line bg-bg-elev touch-pan-y">
             <DetailMap hill={hill} highlightDistanceM={highlightDistanceM} />
           </div>
           <ElevationProfile hill={hill} onHoverDistance={setHighlightDistanceM} />
@@ -146,7 +147,8 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
           <DetailStat label="Direction" value={hill.direction} />
         </dl>
 
-        <div className="mt-5">
+        {/* Inline directions CTA on desktop; mobile gets a sticky floating button below. */}
+        <div className="mt-5 hidden md:block">
           <a
             href={directionsHref}
             target="_blank"
@@ -211,6 +213,16 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
           )}
         </section>
       </div>
+
+      {/* Mobile sticky directions button */}
+      <a
+        href={directionsHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="md:hidden fixed bottom-4 inset-x-4 z-30 bg-accent text-bg-elev rounded-md shadow-lg px-4 min-h-[48px] flex items-center justify-center font-medium hover:bg-accent-2"
+      >
+        Get directions ↗
+      </a>
     </div>
   );
 }

@@ -50,9 +50,18 @@ export function ElevationProfile({ hill, onHoverDistance }: ElevationProfileProp
         </div>
       </div>
       <div
+        className="touch-pan-y"
         onMouseLeave={() => {
           setHovered(null);
           onHoverDistance?.(null);
+        }}
+        onTouchEnd={() => {
+          // On touch devices, lift removes the highlight after a short delay so
+          // the user can read the value, then resume scrolling.
+          setTimeout(() => {
+            setHovered(null);
+            onHoverDistance?.(null);
+          }, 1500);
         }}
       >
         <ResponsiveContainer width="100%" height={220}>
