@@ -110,7 +110,7 @@ export function ResultsView({ onSelectHill }: ResultsViewProps) {
       {/* Desktop sidebar (≥md) */}
       <aside className="hidden md:flex border-r border-line bg-bg flex-col min-h-0">
         <header className="px-4 py-3 border-b border-line">
-          <h2 className="font-serif text-2xl text-ink leading-none">Hills near {town.name}</h2>
+          <h1 className="font-serif text-2xl text-ink leading-none">Hills near {town.name}</h1>
           <div className="flex items-center justify-between mt-2 gap-3 flex-wrap">
             <p className="text-xs text-ink-3">
               {visibleHills.length} of {allHills.length}{" "}
@@ -136,9 +136,9 @@ export function ResultsView({ onSelectHill }: ResultsViewProps) {
       <div className="md:hidden flex flex-col h-full min-h-0">
         <header className="px-4 py-3 border-b border-line bg-bg-elev shrink-0">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="font-serif text-xl text-ink leading-none truncate">
+            <h1 className="font-serif text-xl text-ink leading-none truncate">
               Hills near {town.name}
-            </h2>
+            </h1>
           </div>
           <div className="flex items-center justify-between gap-2 mt-2">
             <p className="text-xs text-ink-3">

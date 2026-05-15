@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Hill } from "../lib/types";
-import { haversineKm, gradientColor, formatSurface, formatHillName } from "../lib/geo";
+import { haversineKm, gradientColor, formatHillName } from "../lib/geo";
+import { SurfaceBadge } from "./surface-badge";
 import { useHover } from "../lib/hover-context";
 
 type HillCardProps = {
@@ -67,7 +68,12 @@ export function HillCard({ hill, referencePoint, onSelect }: HillCardProps) {
           color={gradientColor(hill.avgGradient)}
         />
         <Stat label="Ascent" value={`${hill.totalAscentM} m`} />
-        <Stat label="Surface" value={formatSurface(hill.surface)} />
+        <div>
+          <div className="text-ink-3 uppercase tracking-wide text-[10px]">Surface</div>
+          <div className="font-mono text-ink">
+            <SurfaceBadge surface={hill.surface} />
+          </div>
+        </div>
       </div>
     </button>
   );

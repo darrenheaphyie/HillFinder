@@ -3,7 +3,8 @@ import { getHillById } from "../lib/hills";
 import type { Hill } from "../lib/types";
 import { ElevationProfile } from "./elevation-profile";
 import { DetailMap } from "./detail-map";
-import { gradientColor, formatSurface, formatHillName } from "../lib/geo";
+import { gradientColor, formatHillName } from "../lib/geo";
+import { SurfaceBadge } from "./surface-badge";
 
 type DetailViewProps = {
   hillId: string;
@@ -143,7 +144,12 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
           />
           <DetailStat label="Start elevation" value={`${hill.startElevationM} m`} />
           <DetailStat label="Top elevation" value={`${hill.topElevationM} m`} />
-          <DetailStat label="Surface" value={formatSurface(hill.surface)} />
+          <div className="bg-bg-elev border border-line rounded-lg p-3">
+            <dt className="text-[11px] uppercase tracking-wide text-ink-3">Surface</dt>
+            <dd className="font-mono text-ink mt-1">
+              <SurfaceBadge surface={hill.surface} />
+            </dd>
+          </div>
           <DetailStat label="Direction" value={hill.direction} />
         </dl>
 
