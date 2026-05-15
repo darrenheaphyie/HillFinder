@@ -96,3 +96,7 @@ The Vite + React + TS + Tailwind scaffold lives at the repo root. The original C
 The map component (`src/components/hill-map.tsx`) uses MapLibre GL with OpenFreeMap (positron) tiles. The design prototype's stylised SVG topomap is not used — it was a presentational mock.
 
 Run commands are in the README. `npm run build` runs `tsc -b` first, so type errors block the build.
+
+## Dark mode
+
+Dark mode is deferred to post-MVP — tracked in issue #37. Until then, write light-palette Tailwind classes only and do **not** add `dark:` variants. The prototype's dark palette and "sun-sweep" transition remain in `design_handoff_hillfinder/` as a reference.
