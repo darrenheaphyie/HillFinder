@@ -117,32 +117,54 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
           </a>
         </div>
 
-        <section className="mt-8">
-          <h2 className="font-serif text-2xl text-ink mb-3">Strava segments</h2>
+        <section className="mt-8" aria-labelledby="strava-heading">
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 id="strava-heading" className="font-serif text-2xl text-ink">
+              Strava segments
+            </h2>
+            <span className="text-xs font-mono text-ink-3">
+              {hill.stravaSegments.length}{" "}
+              {hill.stravaSegments.length === 1 ? "segment" : "segments"}
+            </span>
+          </div>
           {hill.stravaSegments.length === 0 ? (
-            <p className="text-sm text-ink-3">
-              No Strava segments on this hill yet. You might be the first.
-            </p>
+            <div className="bg-bg-elev border border-dashed border-line-2 rounded-lg px-4 py-5 flex items-center gap-3">
+              <span
+                aria-hidden="true"
+                className="inline-block w-8 h-8 rounded-full border-2 border-dashed border-line-2 shrink-0"
+              />
+              <p className="text-sm text-ink-2">
+                No Strava segments on this hill yet.{" "}
+                <span className="text-ink-3">You might be the first.</span>
+              </p>
+            </div>
           ) : (
             <ul className="space-y-2">
               {hill.stravaSegments.map((seg) => (
                 <li
                   key={seg.id}
-                  className="bg-bg-elev border border-line rounded-lg p-3 flex items-center justify-between"
+                  className="bg-bg-elev border border-line rounded-lg p-3"
                 >
-                  <div>
-                    <a
-                      href={`https://www.strava.com/segments/${seg.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-ink font-medium hover:text-accent"
+                  <a
+                    href={`https://www.strava.com/segments/${seg.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center justify-between gap-3 text-ink hover:text-accent"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{seg.name}</div>
+                      <p className="text-xs text-ink-3 mt-0.5">
+                        {(seg.lengthM / 1000).toFixed(2)} km · {seg.avgGradient.toFixed(1)}%
+                      </p>
+                    </div>
+                    <span
+                      aria-hidden="true"
+                      className="text-ink-3 group-hover:text-accent text-sm shrink-0"
                     >
-                      {seg.name}
-                    </a>
-                    <p className="text-xs text-ink-3 mt-0.5">
-                      {(seg.lengthM / 1000).toFixed(2)} km · {seg.avgGradient.toFixed(1)}%
-                    </p>
-                  </div>
+                      Open ↗
+                    </span>
+                    <span className="sr-only">(opens Strava in a new tab)</span>
+                  </a>
                 </li>
               ))}
             </ul>
