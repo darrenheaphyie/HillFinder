@@ -1,11 +1,14 @@
 import type { Hill, HillFilters } from "./types";
 import { haversineKm } from "./geo";
+import { validateHills } from "./validate";
 import rawHills from "../data/hills.json";
 
 // Single fetch boundary — today reads JSON, later swaps to an API call.
 // Do NOT add a second data path. All consumers go through getHills().
 
-const ALL_HILLS = rawHills as Hill[];
+// Validate once at module load. Throws loudly in dev if the JSON drifts
+// from the Hill type contract.
+const ALL_HILLS: Hill[] = validateHills(rawHills);
 
 export async function getHills(filters?: HillFilters): Promise<Hill[]> {
   // Simulate the latency of a future API so the loading state has work to do.

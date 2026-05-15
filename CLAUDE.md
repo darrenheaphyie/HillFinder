@@ -42,7 +42,9 @@ export async function getHills(filters: HillFilters): Promise<Hill[]>
 
 Today this reads from `src/data/hills.json`. Later it will hit an API. **Keep this boundary clean** — do not sprinkle data fetching or mock data through components. The whole point of this phase is to get the data shape right so the pipeline phase has a clear target.
 
-The `Hill` type lives in `src/lib/types.ts` and should match the JSON shape exactly. When the type changes, the JSON updates with it (and vice versa).
+The `Hill` type lives in `src/lib/types.ts` and is the contract between the frontend, `src/data/hills.json`, and the future pipeline/API. The type is locked — fields are documented in `types.ts`. When the type changes, the JSON updates with it (and vice versa).
+
+A runtime validator (`src/lib/validate.ts`) checks `hills.json` against the type at module load. Run `npm run validate:hills` to validate from the CLI.
 
 ## What's in scope right now
 
