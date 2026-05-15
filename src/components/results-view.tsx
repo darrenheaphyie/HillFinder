@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getHills } from "../lib/hills";
 import { getTown, DEFAULT_TOWN_ID } from "../lib/towns";
 import { useHashParam } from "../lib/hash-route";
@@ -9,27 +9,39 @@ import { HillCard } from "./hill-card";
 import { HillMap } from "./hill-map";
 import { TownSelector } from "./town-selector";
 import { FilterRail } from "./filter-rail";
+import { SkeletonCard } from "./skeleton-card";
 
 type ResultsViewProps = {
   onSelectHill: (id: string) => void;
 };
 
+type LoadState =
+  | { kind: "loading" }
+  | { kind: "loaded"; hills: Hill[] }
+  | { kind: "error"; message: string };
+
 export function ResultsView({ onSelectHill }: ResultsViewProps) {
-  const [allHills, setAllHills] = useState<Hill[]>([]);
+  const [load, setLoad] = useState<LoadState>({ kind: "loading" });
   const [townParam, setTownParam] = useHashParam("town");
   const townId = townParam ?? DEFAULT_TOWN_ID;
   const town = getTown(townId);
   const { filters, setFilters, resetFilters } = useFilters();
 
-  useEffect(() => {
-    let cancelled = false;
-    getHills().then((h) => {
-      if (!cancelled) setAllHills(h);
-    });
-    return () => {
-      cancelled = true;
-    };
+  const fetchHills = useCallback(() => {
+    setLoad({ kind: "loading" });
+    getHills()
+      .then((h) => setLoad({ kind: "loaded", hills: h }))
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        setLoad({ kind: "error", message });
+      });
   }, []);
+
+  useEffect(() => {
+    fetchHills();
+  }, [fetchHills]);
+
+  const allHills = load.kind === "loaded" ? load.hills : [];
 
   const referencePoint = { lat: town.lat, lon: town.lon };
   const visibleHills = useMemo(
@@ -61,7 +73,17 @@ export function ResultsView({ onSelectHill }: ResultsViewProps) {
           activeCount={activeCount}
         />
         <div className="flex-1 overflow-auto">
-          {visibleHills.length === 0 ? (
+          {load.kind === "loading" ? (
+            <ul className="p-3 space-y-2" aria-busy="true" aria-label="Loading hills">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <li key={i}>
+                  <SkeletonCard />
+                </li>
+              ))}
+            </ul>
+          ) : load.kind === "error" ? (
+            <ErrorState message={load.message} onRetry={fetchHills} />
+          ) : visibleHills.length === 0 ? (
             <EmptyState
               hasActiveFilters={activeCount > 0}
               townName={town.name}
@@ -82,14 +104,37 @@ export function ResultsView({ onSelectHill }: ResultsViewProps) {
           )}
         </div>
       </aside>
-      <section className="min-h-0">
+      <section className="min-h-0 relative">
         <HillMap
           hills={visibleHills}
           fallbackCenter={referencePoint}
           onPinClick={onSelectHill}
           enableHoverSync
         />
+        {load.kind === "loading" && (
+          <div className="absolute inset-x-0 top-0 bg-bg-elev/70 backdrop-blur-sm text-xs text-ink-2 text-center py-1 pointer-events-none">
+            Loading…
+          </div>
+        )}
       </section>
+    </div>
+  );
+}
+
+function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="p-6 flex flex-col items-start gap-3">
+      <h3 className="font-serif text-xl text-ink">Couldn't load hills</h3>
+      <p className="text-sm text-ink-2">
+        Something went wrong fetching the climbs. {message ? <em>({message})</em> : null}
+      </p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="text-sm bg-accent text-bg-elev px-3 py-1.5 rounded-md hover:bg-accent-2"
+      >
+        Retry
+      </button>
     </div>
   );
 }

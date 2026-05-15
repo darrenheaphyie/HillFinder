@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getHillById } from "../lib/hills";
 import type { Hill } from "../lib/types";
 import { ElevationProfile } from "./elevation-profile";
@@ -10,23 +10,31 @@ type DetailViewProps = {
   onBack: () => void;
 };
 
+type DetailLoad =
+  | { kind: "loading" }
+  | { kind: "loaded"; hill: Hill | undefined }
+  | { kind: "error"; message: string };
+
 export function DetailView({ hillId, onBack }: DetailViewProps) {
-  const [hill, setHill] = useState<Hill | undefined>(undefined);
-  const [loaded, setLoaded] = useState(false);
+  const [load, setLoad] = useState<DetailLoad>({ kind: "loading" });
   const [highlightDistanceM, setHighlightDistanceM] = useState<number | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    getHillById(hillId).then((h) => {
-      if (cancelled) return;
-      setHill(h);
-      setLoaded(true);
-      if (h?.name) document.title = `${h.name} · HillFinder`;
-    });
-    return () => {
-      cancelled = true;
-    };
+  const fetchHill = useCallback(() => {
+    setLoad({ kind: "loading" });
+    getHillById(hillId)
+      .then((h) => {
+        setLoad({ kind: "loaded", hill: h });
+        if (h?.name) document.title = `${h.name} · HillFinder`;
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        setLoad({ kind: "error", message });
+      });
   }, [hillId]);
+
+  useEffect(() => {
+    fetchHill();
+  }, [fetchHill]);
 
   // Escape closes the detail view.
   useEffect(() => {
@@ -37,10 +45,42 @@ export function DetailView({ hillId, onBack }: DetailViewProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onBack]);
 
-  if (!loaded) {
-    return <div className="p-8 text-ink-3">Loading…</div>;
+  if (load.kind === "loading") {
+    return (
+      <div className="p-8 max-w-3xl animate-pulse">
+        <div className="h-8 w-2/3 bg-line rounded" />
+        <div className="h-4 w-1/3 bg-line rounded mt-2" />
+        <div className="h-72 bg-line rounded mt-6" />
+      </div>
+    );
   }
 
+  if (load.kind === "error") {
+    return (
+      <div className="p-8 max-w-xl">
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-sm text-accent hover:text-accent-2"
+        >
+          ← Back to results
+        </button>
+        <h1 className="font-serif text-3xl text-ink mt-4">Couldn't load this hill</h1>
+        <p className="mt-2 text-ink-2">
+          {load.message && <em>({load.message}) </em>}
+        </p>
+        <button
+          type="button"
+          onClick={fetchHill}
+          className="mt-3 text-sm bg-accent text-bg-elev px-3 py-1.5 rounded-md hover:bg-accent-2"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const hill = load.hill;
   if (!hill) {
     return (
       <div className="p-8 max-w-xl">
