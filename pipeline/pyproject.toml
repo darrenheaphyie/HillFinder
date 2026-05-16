@@ -4,8 +4,9 @@ version = "0.0.1"
 description = "OSM + DEM -> detected hills for HillFinder."
 requires-python = ">=3.11"
 dependencies = [
-  # OSM ingestion.
-  "pyrosm>=0.6.2",
+  # OSM ingestion. python-osmium is a C++-backed handler library — fast,
+  # well-maintained, and reads PBF natively.
+  "osmium>=3.7",
   # Geometry & projections.
   "geopandas>=0.14",
   "shapely>=2.0",

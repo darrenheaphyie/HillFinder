@@ -35,6 +35,7 @@ tsconfig.tsbuildinfo
 __pycache__/
 *.pyc
 .venv/
+*.egg-info/
 pipeline/data/*
 # But keep ground_truth.csv — it's reference data, not generated.
 !pipeline/data/ground_truth.csv
