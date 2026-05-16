@@ -89,10 +89,20 @@ def main() -> int:
     meta.update({"height": arr.shape[1], "width": arr.shape[2], "transform": transform})
     with rasterio.open(MERGED, "w", **meta) as dst:
         dst.write(arr)
+    bounds = [s.bounds for s in srcs]
     for s in srcs:
         s.close()
 
-    print(f"wrote {MERGED} ({MERGED.stat().st_size / 1e6:.1f} MB)")
+    # Summary: cover of the merged raster in WGS84.
+    min_lon = min(b.left for b in bounds)
+    max_lon = max(b.right for b in bounds)
+    min_lat = min(b.bottom for b in bounds)
+    max_lat = max(b.top for b in bounds)
+    print(
+        f"wrote {MERGED} ({MERGED.stat().st_size / 1e6:.1f} MB), "
+        f"covers lat [{min_lat:.3f}, {max_lat:.3f}], lon [{min_lon:.3f}, {max_lon:.3f}], "
+        f"CRS=EPSG:4326"
+    )
     return 0
 
 
