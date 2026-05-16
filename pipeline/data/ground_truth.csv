@@ -1,0 +1,19 @@
+# Placeholder ground truth seeded from src/data/hills.json (issue #26).
+# Maintainer should replace these with verified climbs against local knowledge.
+# Keep at least 3-4 rows out of the tuning loop as a held-out test set.
+name,start_lat,start_lon,end_lat,end_lon,approx_length_m,approx_avg_gradient,split,notes
+"Brandon Hill, North Face",52.53400,-6.95000,52.51800,-6.97100,3200,7.4,train,seeded from brandon (Graiguenamanagh)
+Talbot's Inch Wall,52.66200,-7.26200,52.66380,-7.26020,260,10.6,test,seeded from talbots-inch-wall (Kilkenny city)
+Tory Hill,52.40600,-7.13700,52.41400,-7.15300,2400,6.8,train,seeded from tory-hill (Mullinavat)
+"Mount Leinster, Kilkenny approach",52.59700,-6.81200,52.61700,-6.77800,3800,5.6,train,seeded from mount-leinster-approach (Borris)
+Mount Alto via Woodstock,52.48700,-7.05200,52.47300,-7.04100,2780,9.2,test,seeded from woodstock (Inistioge)
+Inistioge South Climb,52.49000,-7.07000,52.47900,-7.08100,1500,8.1,test,seeded from inistioge-south (Inistioge)
+Thomastown back road,52.53200,-7.13300,52.52500,-7.11500,1900,4.2,train,seeded from thomastown-backroad (Thomastown)
+Castlecomer plateau climb,52.79200,-7.20800,52.80600,-7.22400,2200,5.2,train,seeded from castlecomer-plateau (Castlecomer)
+Deadmans Lane,52.78200,-7.21800,52.79100,-7.22200,980,8.9,train,seeded from deadmans-lane (Castlecomer)
+Bennettsbridge South,52.58200,-7.18400,52.57600,-7.18100,720,5.4,train,seeded from bennettsbridge-south (Bennettsbridge)
+Slieveardagh Spine,52.69700,-7.49100,52.71000,-7.50800,2900,6.0,train,seeded from slieveardagh-spine (Ballingarry)
+Three Castles Climb,52.73000,-7.39200,52.72000,-7.40800,2100,4.6,test,seeded from freshford-three-castles (Freshford)
+Kilmacow Wall,52.31200,-7.17400,52.31600,-7.17000,520,11.8,train,seeded from kilmacow-wall (Kilmacow)
+Unnamed near Mullinavat,52.38700,-7.17000,52.39400,-7.18200,1640,10.4,train,seeded from unnamed-mullinavat-boreen (Mullinavat)
+Unnamed near Graiguenamanagh,52.54100,-6.96200,52.55000,-6.97300,1380,7.6,train,seeded from unnamed-graig-forest (Graiguenamanagh)

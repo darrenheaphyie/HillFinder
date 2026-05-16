@@ -149,6 +149,28 @@ DEM CRS is EPSG:4326 (WGS84) at source. Distance measurement uses EPSG:2157 (Iri
 
 Detector thresholds live in `detect_hills.py` as argparse defaults. See the docstring for the algorithm description.
 
+### Detector parameters chosen for Kilkenny
+
+Chosen via `ground_truth_eval.py` against `pipeline/data/ground_truth.csv`:
+
+```sh
+python detect_hills.py \
+  --min-length-m 1000 \
+  --min-ascent-m 50 \
+  --min-avg-gradient-pct 4 \
+  --max-gradient-window-m 100
+```
+
+Produces ~200 climbs across Co. Kilkenny — defensible per-county density. Tighter combinations (1500m/80m/5%) cut to ~40 climbs but recall drops to zero against the GT.
+
+**Caveat — the ground truth is placeholder.** `pipeline/data/ground_truth.csv` was seeded from `src/data/hills.json`, which itself was a hand-crafted approximation in the frontend mock phase. Those coordinates don't sit precisely on real OSM way starts, so the recall numbers reported by the eval undercount real matches by some margin. The first thing to do before serious tuning is replace the rows with verified hand-collected ground truth.
+
+The eval uses a `match-radius-m` of 1000 (1 km). With real ground truth, drop this to ~250 m.
+
+### Train/test split
+
+`ground_truth.csv` has a `split` column with 4 rows held out for "test". The tuning loop only optimises against train rows; the test recall is reported separately so we can spot overfitting. The split is seeded (random seed 42) so it's stable across re-runs.
+
 ## Overlapping map pins
 
 Pins whose start coordinates are within ~200m of each other are visually offset (jittered around their cluster centroid) — see `jitterOverlappingPins` in `src/components/hill-map.tsx`. We picked Option A from issue #13 (jitter) over clustering or zoom-on-click because it requires no MapLibre plugin and stays readable at all zoom levels. If a future dataset has 5+ pins overlapping the same point, this will start to feel cramped — at that point, swap to MapLibre's built-in clustering on the geojson source.
