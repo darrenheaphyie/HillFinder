@@ -35,13 +35,13 @@ PAVED_VALUES = {"asphalt", "paved", "concrete", "concrete:plates", "concrete:lan
 UNPAVED_VALUES = {"gravel", "dirt", "ground", "grass", "earth", "sand", "compacted", "fine_gravel", "pebblestone", "mud"}
 
 
-def classify_surface(raw: str | None) -> str:
-    if not raw:
+def classify_surface(raw: object) -> str:
+    if not isinstance(raw, str) or not raw.strip():
         return "paved"  # conservative default — most OSM ways in Ireland are paved unless tagged.
-    raw = raw.lower()
-    if raw in PAVED_VALUES:
+    norm = raw.lower().strip()
+    if norm in PAVED_VALUES:
         return "paved"
-    if raw in UNPAVED_VALUES:
+    if norm in UNPAVED_VALUES:
         return "unpaved"
     return "mixed"
 
