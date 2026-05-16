@@ -30,3 +30,12 @@ tsconfig.tsbuildinfo
 .env
 .env.local
 .env.*.local
+
+# Python pipeline
+__pycache__/
+*.pyc
+.venv/
+pipeline/data/*
+# But keep ground_truth.csv — it's reference data, not generated.
+!pipeline/data/ground_truth.csv
+!pipeline/data/.gitkeep

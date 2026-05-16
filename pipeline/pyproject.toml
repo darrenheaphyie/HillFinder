@@ -1,0 +1,35 @@
+[project]
+name = "hillfinder-pipeline"
+version = "0.0.1"
+description = "OSM + DEM -> detected hills for HillFinder."
+requires-python = ">=3.11"
+dependencies = [
+  # OSM ingestion.
+  "pyrosm>=0.6.2",
+  # Geometry & projections.
+  "geopandas>=0.14",
+  "shapely>=2.0",
+  # Raster I/O and sampling for the elevation DEM.
+  "rasterio>=1.3",
+  # Numerical / signal processing.
+  "numpy>=1.26",
+  "scipy>=1.11",
+  # Parquet I/O.
+  "pyarrow>=15.0",
+  # Downloads.
+  "requests>=2.31",
+  "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.4",
+]
+
+[tool.ruff]
+line-length = 100
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

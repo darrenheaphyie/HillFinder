@@ -133,6 +133,22 @@ If you find yourself writing the same 6-class chain twice, add it here.
 
 `ink-3` is `#5A6373` (not the design handoff's `#6E7889`) so caption-size text passes WCAG AA 4.5:1 against `bg`. Don't change this back without testing contrast.
 
+## Pipeline
+
+The Python pipeline lives in `pipeline/` at the repo root, separate from the frontend. Requires Python 3.11+. Setup:
+
+```sh
+cd pipeline && python -m venv .venv && source .venv/bin/activate && pip install -e .
+```
+
+Steps are linear (`download_osm → extract_ways → download_dem → sample_elevation → detect_hills → export_hills_json`) and idempotent — re-running a script with its output already present is a no-op. Intermediate outputs go to `pipeline/data/` which is gitignored; only `pipeline/data/ground_truth.csv` is checked in (reference data, used by `ground_truth_eval.py` from issue #26).
+
+Elevation source: Copernicus DEM 30m global (CC-BY 4.0). Chosen over Tailte Éireann LIDAR for the MVP because it's reachable as a flat S3 bucket without auth, and 30m horizontal resolution survives the detector's 50m smoothing window comfortably. See `download_dem.py` docstring for the trade-off rationale.
+
+DEM CRS is EPSG:4326 (WGS84) at source. Distance measurement uses EPSG:2157 (Irish Transverse Mercator) for accurate metric along-line distances; the sampler reprojects between the two.
+
+Detector thresholds live in `detect_hills.py` as argparse defaults. See the docstring for the algorithm description.
+
 ## Overlapping map pins
 
 Pins whose start coordinates are within ~200m of each other are visually offset (jittered around their cluster centroid) — see `jitterOverlappingPins` in `src/components/hill-map.tsx`. We picked Option A from issue #13 (jitter) over clustering or zoom-on-click because it requires no MapLibre plugin and stays readable at all zoom levels. If a future dataset has 5+ pins overlapping the same point, this will start to feel cramped — at that point, swap to MapLibre's built-in clustering on the geojson source.
