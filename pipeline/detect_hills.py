@@ -61,6 +61,7 @@ def detect_hills_for_profile(
     smoothing_window_m: float,
     flat_tolerance_m: float,
     descent_tolerance_m: float,
+    max_gradient_window_m: float = 100.0,
 ) -> list[dict]:
     """Detect climbs in a single way's profile."""
     import numpy as np
@@ -129,8 +130,9 @@ def detect_hills_for_profile(
             and ascent_m >= min_ascent_m
             and avg_gradient >= min_avg_gradient_pct
         ):
-            # Compute max gradient over a sustained ~50 m window.
-            window_samples = max(2, int(round(50.0 / max(sample_spacing, 1.0))))
+            # Compute max gradient over a "sustained" window — wider than the
+            # sample spacing so single-cell DEM artifacts don't dominate.
+            window_samples = max(2, int(round(max_gradient_window_m / max(sample_spacing, 1.0))))
             max_gradient = 0.0
             for k in range(start, end - window_samples + 1):
                 seg_len = dist[k + window_samples] - dist[k]
@@ -168,6 +170,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--smoothing-window-m", type=float, default=50.0)
     p.add_argument("--flat-tolerance-m", type=float, default=50.0)
     p.add_argument("--descent-tolerance-m", type=float, default=5.0)
+    p.add_argument("--max-gradient-window-m", type=float, default=100.0,
+                   help="Window for reported max gradient. Wider = less DEM noise.")
     args = p.parse_args(argv)
 
     if not IN_PROFILES.exists():
@@ -203,6 +207,7 @@ def main(argv: list[str] | None = None) -> int:
             smoothing_window_m=args.smoothing_window_m,
             flat_tolerance_m=args.flat_tolerance_m,
             descent_tolerance_m=args.descent_tolerance_m,
+            max_gradient_window_m=args.max_gradient_window_m,
         )
         for h in hills:
             h["way_id"] = int(way_id) if way_id is not None else -1
