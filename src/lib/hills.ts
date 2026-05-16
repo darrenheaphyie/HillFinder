@@ -1,22 +1,28 @@
 import type { Hill, HillFilters } from "./types";
 import { haversineKm } from "./geo";
 import { validateHills } from "./validate";
-import rawHills from "../data/hills.json";
 
 // Single fetch boundary — today reads JSON, later swaps to an API call.
 // Do NOT add a second data path. All consumers go through getHills().
 
-// Validate once at module load. Throws loudly in dev if the JSON drifts
-// from the Hill type contract.
-const ALL_HILLS: Hill[] = validateHills(rawHills);
+// Lazy-load the bundled JSON so it can go into its own chunk. Vite splits
+// dynamic imports into separate assets, which keeps the main bundle small
+// when the dataset grows.
+let allHillsPromise: Promise<Hill[]> | null = null;
+async function loadAllHills(): Promise<Hill[]> {
+  if (!allHillsPromise) {
+    allHillsPromise = import("../data/hills.json").then((mod) =>
+      validateHills(mod.default),
+    );
+  }
+  return allHillsPromise;
+}
 
 export async function getHills(filters?: HillFilters): Promise<Hill[]> {
-  // Simulate the latency of a future API so the loading state has work to do.
-  await new Promise((r) => setTimeout(r, 0));
+  const all = await loadAllHills();
+  if (!filters) return all;
 
-  if (!filters) return ALL_HILLS;
-
-  const filtered = ALL_HILLS.filter((h) => {
+  const filtered = all.filter((h) => {
     const d = haversineKm(filters.referencePoint, h.start);
     if (d > filters.maxDistanceKm) return false;
     if (h.lengthM < filters.lengthRangeM[0] || h.lengthM > filters.lengthRangeM[1]) return false;
@@ -49,5 +55,6 @@ export async function getHills(filters?: HillFilters): Promise<Hill[]> {
 }
 
 export async function getHillById(id: string): Promise<Hill | undefined> {
-  return ALL_HILLS.find((h) => h.id === id);
+  const all = await loadAllHills();
+  return all.find((h) => h.id === id);
 }

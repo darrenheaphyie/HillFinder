@@ -29,6 +29,11 @@ IN_WAYS = DATA / "kilkenny_ways.gpkg"
 TOWNS = Path(__file__).parent.parent / "src" / "data" / "towns.json"
 OUT = DATA / "kilkenny_hills.json"
 
+# Max samples kept in the JSON profile/polyline. The detector samples at 10m
+# along the way; a 3km climb is 300 samples raw. Downsampling to 50 keeps
+# the gradient-colour fidelity in the frontend chart while bounding payload.
+MAX_PROFILE_SAMPLES = 50
+
 
 # Frontend uses the same colour scale; classify into 'paved' | 'unpaved' | 'mixed'.
 PAVED_VALUES = {"asphalt", "paved", "concrete", "concrete:plates", "concrete:lanes", "chipseal"}
@@ -89,6 +94,12 @@ def main() -> int:
         if slice_.empty:
             continue
 
+        # Downsample evenly while keeping the endpoints.
+        if len(slice_) > MAX_PROFILE_SAMPLES:
+            import numpy as np
+            idxs = np.unique(np.linspace(0, len(slice_) - 1, MAX_PROFILE_SAMPLES).astype(int))
+            slice_ = slice_.iloc[idxs]
+
         # Re-base distance to 0 at the climb start.
         d0 = slice_["distance_m"].iloc[0]
         elevation_profile = []
@@ -101,14 +112,21 @@ def main() -> int:
                 g = (e - prev_e) / (d - prev_d) * 100.0
             else:
                 g = 0.0
+            # 30m DEM doesn't justify sub-metre elevation. Distance rounded to
+            # nearest 1m (sampler is 10m), gradient to 0.1%.
             elevation_profile.append({
-                "distanceM": round(d, 1),
-                "elevationM": round(e, 1),
+                "distanceM": round(d),
+                "elevationM": round(e),
                 "gradient": round(g, 1),
             })
             prev_e, prev_d = e, d
 
-        polyline = [{"lat": float(s["lat"]), "lon": float(s["lon"])} for _, s in slice_.iterrows()]
+        # 5dp lat/lon ~= 1m precision; full floats add no information and
+        # triple the JSON size.
+        polyline = [
+            {"lat": round(float(s["lat"]), 5), "lon": round(float(s["lon"]), 5)}
+            for _, s in slice_.iterrows()
+        ]
 
         # Name: prefer OSM way name; otherwise None (frontend renders "Unnamed climb near X").
         osm_name = row.get("name", None)
@@ -130,15 +148,18 @@ def main() -> int:
         hill = {
             "id": hid,
             "name": name,
-            "start": {"lat": start_lat, "lon": start_lon},
-            "end": {"lat": float(row["end_lat"]), "lon": float(row["end_lon"])},
+            "start": {"lat": round(start_lat, 5), "lon": round(start_lon, 5)},
+            "end": {
+                "lat": round(float(row["end_lat"]), 5),
+                "lon": round(float(row["end_lon"]), 5),
+            },
             "polyline": polyline,
-            "lengthM": round(float(row["length_m"]), 1),
-            "totalAscentM": round(float(row["total_ascent_m"]), 1),
+            "lengthM": round(float(row["length_m"])),
+            "totalAscentM": round(float(row["total_ascent_m"])),
             "avgGradient": round(float(row["avg_gradient_pct"]), 1),
             "maxGradient": round(float(row["max_gradient_pct"]), 1),
-            "startElevationM": round(float(row["start_elevation_m"]), 1),
-            "topElevationM": round(float(row["top_elevation_m"]), 1),
+            "startElevationM": round(float(row["start_elevation_m"])),
+            "topElevationM": round(float(row["top_elevation_m"])),
             "surface": surface,
             "direction": direction,
             "elevationProfile": elevation_profile,
@@ -152,8 +173,10 @@ def main() -> int:
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with open(OUT, "w") as f:
-        json.dump(out, f, indent=2)
-    print(f"wrote {OUT} ({len(out)} hills)")
+        # Compact: drops ~30% of file size with no info loss. Frontend never
+        # reads this by hand; it's parsed by JS.
+        json.dump(out, f, separators=(",", ":"))
+    print(f"wrote {OUT} ({len(out)} hills, {OUT.stat().st_size / 1e6:.1f} MB)")
     return 0
 
 

@@ -105,7 +105,21 @@ Dark mode is deferred to post-MVP — tracked in issue #37. Until then, write li
 
 ## Result list performance
 
-The MVP dataset is 15 hills, so the list is rendered as plain elements with no virtualisation or pagination. If the dataset grows past ~50, revisit — `react-window` is the preferred option (small footprint, well-understood). Don't add virtualisation pre-emptively.
+The current dataset is 196 hills from the pipeline. The list is still rendered as plain elements without virtualisation — testing in browser at 196 rows is smooth, and filters typically cut the visible set to fewer than that. If the dataset grows past ~500, revisit with `react-window` (small footprint, well-understood). Don't add virtualisation pre-emptively.
+
+## How to refresh `src/data/hills.json`
+
+The frontend reads from `src/data/hills.json`, which is the output of the pipeline. To regenerate:
+
+```sh
+cd pipeline && source .venv/bin/activate
+python detect_hills.py --min-length-m 1000 --min-ascent-m 50 --min-avg-gradient-pct 4
+python export_hills_json.py
+cp data/kilkenny_hills.json ../src/data/hills.json
+cd .. && npm run validate:hills && npm run build
+```
+
+`hills.json` is bundled as a separate Vite chunk via dynamic import in `src/lib/hills.ts`, so the main app chunk stays small as the dataset grows.
 
 ## Directions hand-off
 
