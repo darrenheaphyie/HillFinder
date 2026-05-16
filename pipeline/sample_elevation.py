@@ -33,6 +33,10 @@ METRIC_CRS = "EPSG:2157"  # Irish Transverse Mercator (ITM)
 
 SAMPLE_INTERVAL_M = 10.0
 NODATA_DROP_FRAC = 0.5
+# A way must be at least this long (in metres) to be sampled. Ways shorter
+# than this cannot host a climb >= the detector's min length, so sampling
+# them just bloats the parquet output.
+MIN_WAY_LENGTH_M = 100.0
 
 
 def main() -> int:
@@ -55,6 +59,9 @@ def main() -> int:
 
     print(f"reading {IN_WAYS}")
     ways = gpd.read_file(IN_WAYS).to_crs(METRIC_CRS)
+    before = len(ways)
+    ways = ways[ways.geometry.length >= MIN_WAY_LENGTH_M].copy()
+    print(f"  {before} ways -> {len(ways)} after dropping length < {MIN_WAY_LENGTH_M:g} m")
 
     print(f"opening {IN_DEM}")
     dem = rasterio.open(IN_DEM)
